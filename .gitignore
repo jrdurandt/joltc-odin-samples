@@ -1,0 +1,8 @@
+*.bin
+*.exe
+*.so
+*.lib
+*.dll
+*.dylib
+
+/jolt-odin-latest
