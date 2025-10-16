@@ -23,7 +23,7 @@ main_ballpit :: proc() {
 	init_physics()
 	defer destroy_physics()
 
-	sphere_mesh := rl.GenMeshSphere(1, 8, 16)
+	sphere_mesh := rl.GenMeshSphere(1, 8, 8)
 	sphere := rl.LoadModelFromMesh(sphere_mesh)
 
 	//Setup static objects (floor and walls)
@@ -173,7 +173,7 @@ main_ballpit :: proc() {
 
 				is_active := jph.BodyInterface_IsActive(physics.body_interface, ball_id)
 				rl.DrawModel(sphere, position, 1, is_active ? rl.RED : rl.GRAY)
-				rl.DrawModelWires(sphere, position, 1, rl.BLACK)
+				rl.DrawModelWires(sphere, position, 1, rl.DARKGRAY)
 			}
 
 			for ball_index in removed_balls {
@@ -182,6 +182,8 @@ main_ballpit :: proc() {
 				unordered_remove(&balls, ball_index)
 			}
 			clear(&removed_balls)
+
+			draw_physics_debug()
 		}
 		rl.EndMode3D()
 
