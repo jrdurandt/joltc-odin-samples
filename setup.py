@@ -34,7 +34,7 @@ def main():
 
     do_update_jolt_odin = args.update_jolt_odin
 
-    if not os.path.exists("jolt-odin-lastest"):
+    if not os.path.exists("jolt-odin"):
         do_update_jolt_odin = True
 
     if do_update_jolt_odin:
@@ -44,6 +44,7 @@ def main():
         print("Extracting Jolt-Odin...")
         with zipfile.ZipFile("jolt-odin.zip", "r") as zip_ref:
             zip_ref.extractall(owd)
+            shutil.move("jolt-odin-latest", "jolt-odin")
 
     do_build_joltc = args.build_joltc
     if IS_LINUX:
@@ -55,7 +56,7 @@ def main():
 
     if do_build_joltc:
         print("Building Jolt-Odin...")
-        os.chdir("jolt-odin-latest")
+        os.chdir("jolt-odin")
         subprocess.run([sys.executable, "build.py", "-build-lib"], check=True)
 
         if IS_WINDOWS:

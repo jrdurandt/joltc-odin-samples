@@ -7,7 +7,7 @@ import "core:math"
 import "core:thread"
 import "core:time"
 
-import jph "jolt-odin-latest"
+import jph "jolt-odin"
 import rl "vendor:raylib"
 
 PHYSICS_UPDATED_PER_SECOND :: 1.0 / 60.0
@@ -26,6 +26,7 @@ Physics :: struct {
 	system:              ^jph.PhysicsSystem,
 	body_interface:      ^jph.BodyInterface,
 	is_running:          bool,
+	is_paused:           bool,
 	ups:                 int,
 	debug_renderer_proc: ^jph.DebugRenderer_Procs,
 	debug_renderer:      ^jph.DebugRenderer,
@@ -100,9 +101,9 @@ init_physics :: proc() {
 	jph.DebugRenderer_SetProcs(physics.debug_renderer_proc)
 
 	jph.DrawSettings_InitDefault(&physics.debug_draw_settings)
-	physics.debug_draw_settings.drawBoundingBox = true
+	// physics.debug_draw_settings.drawBoundingBox = true
 	physics.debug_draw_settings.drawShape = false
-	physics.debug_draw_settings.drawVelocity = true
+	// physics.debug_draw_settings.drawVelocity = true
 	// physics.debug_draw_settings.drawMassAndInertia = true
 }
 
@@ -128,6 +129,9 @@ draw_physics_debug :: proc() {
 		physics.debug_renderer,
 		nil,
 	)
+
+	jph.PhysicsSystem_DrawConstraints(physics.system, physics.debug_renderer)
+	jph.PhysicsSystem_DrawConstraintLimits(physics.system, physics.debug_renderer)
 }
 
 @(private)
@@ -141,16 +145,18 @@ physics_thread :: proc() {
 		delta_time := f32(time.duration_seconds(time.diff(last_time, now_time)))
 
 		if delta_time > PHYSICS_UPDATED_PER_SECOND {
-			err := jph.PhysicsSystem_Update(
-				physics.system,
-				delta_time,
-				PHYSICS_COLLISION_SUB_STEPS,
-				physics.job_system,
-			)
+			if !physics.is_paused {
+				err := jph.PhysicsSystem_Update(
+					physics.system,
+					delta_time,
+					PHYSICS_COLLISION_SUB_STEPS,
+					physics.job_system,
+				)
 
-			if err != .None {
-				physics.is_running = false
-				log.errorf("Error updating physics system: %v", err)
+				if err != .None {
+					physics.is_running = false
+					log.errorf("Error updating physics system: %v", err)
+				}
 			}
 
 			i := cnt % 30

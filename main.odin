@@ -3,7 +3,7 @@ package main
 import "core:log"
 import "core:mem"
 
-import jph "jolt-odin-latest"
+import jph "jolt-odin"
 import rl "vendor:raylib"
 
 WINDOW_WIDTH :: 1920
@@ -35,7 +35,8 @@ main :: proc() {
 
 	log.debug("DEBUG ENABLED")
 
-	main_ballpit()
+	// main_ballpit()
+	main_crib()
 }
 
 hex_to_color :: proc "contextless" (rgba: u32) -> rl.Color {

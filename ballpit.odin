@@ -3,7 +3,7 @@ package main
 import "core:fmt"
 import "core:math/rand"
 
-import jph "jolt-odin-latest"
+import jph "jolt-odin"
 import rl "vendor:raylib"
 
 main_ballpit :: proc() {
