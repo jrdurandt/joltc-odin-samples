@@ -64,7 +64,7 @@ main_heightmap :: proc() {
 	defer rl.UnloadModel(heightmap_model)
 	heightmap_model.materials[0].maps[0].texture = heightmap_tex
 
-	sphere_mesh := rl.GenMeshSphere(1, 8, 8)
+	sphere_mesh := rl.GenMeshSphere(0.2, 8, 8)
 	sphere := rl.LoadModelFromMesh(sphere_mesh)
 
 	init_physics()
@@ -100,19 +100,19 @@ main_heightmap :: proc() {
 	)
 	defer jph.BodyInterface_RemoveAndDestroyBody(physics.body_interface, terrain_id)
 
-	balls: [dynamic]jph.BodyID
+	drops: [dynamic]jph.BodyID
 	defer {
-		for ball_id in balls {
-			jph.BodyInterface_RemoveAndDestroyBody(physics.body_interface, ball_id)
+		for drop_id in drops {
+			jph.BodyInterface_RemoveAndDestroyBody(physics.body_interface, drop_id)
 		}
-		delete(balls)
+		delete(drops)
 	}
 
-	sphere_shape := jph.SphereShape_Create(1)
+	sphere_shape := jph.SphereShape_Create(0.2)
 	jph.PhysicsSystem_OptimizeBroadPhase(physics.system)
 
-	removed_balls: [dynamic]int
-	defer delete(removed_balls)
+	removed_drops: [dynamic]int
+	defer delete(removed_drops)
 
 	run_physics()
 
@@ -125,7 +125,7 @@ main_heightmap :: proc() {
 		}
 
 		if is_spawning {
-			ball_pos := [3]f32 {
+			drop_pos := [3]f32 {
 				rand.float32_range(0, f32(n)),
 				rand.float32_range(30, 50),
 				rand.float32_range(0, f32(n)),
@@ -133,20 +133,20 @@ main_heightmap :: proc() {
 
 			sphere_settings := jph.BodyCreationSettings_Create3(
 				cast(^jph.Shape)sphere_shape,
-				&ball_pos,
+				&drop_pos,
 				nil,
 				.Dynamic,
 				OBJECT_LAYER_MOVING,
 			)
 			defer jph.BodyCreationSettings_Destroy(sphere_settings)
 
-			ball_id := jph.BodyInterface_CreateAndAddBody(
+			drop_id := jph.BodyInterface_CreateAndAddBody(
 				physics.body_interface,
 				sphere_settings,
 				.Activate,
 			)
 
-			append(&balls, ball_id)
+			append(&drops, drop_id)
 		}
 
 		rl.BeginDrawing()
@@ -158,33 +158,33 @@ main_heightmap :: proc() {
 		{
 			rl.DrawModelWires(heightmap_model, {0, 0, 0}, 1, rl.GREEN)
 
-			//Draw balls
-			ball_loop: for ball_id, ball_index in balls {
+			//Draw drops
+			drop_loop: for drop_id, drop_index in drops {
 				position: [3]f32
 				rotation: quaternion128
 
-				jph.BodyInterface_GetPosition(physics.body_interface, ball_id, &position)
-				jph.BodyInterface_GetRotation(physics.body_interface, ball_id, &rotation)
+				jph.BodyInterface_GetPosition(physics.body_interface, drop_id, &position)
+				jph.BodyInterface_GetRotation(physics.body_interface, drop_id, &rotation)
 
 				//Kill plane
 				if position.y <= -50 {
-					append(&removed_balls, ball_index)
-					continue ball_loop
+					append(&removed_drops, drop_index)
+					continue drop_loop
 				}
 
 				sphere.transform = rl.QuaternionToMatrix(rotation)
 
-				is_active := jph.BodyInterface_IsActive(physics.body_interface, ball_id)
+				is_active := jph.BodyInterface_IsActive(physics.body_interface, drop_id)
 				rl.DrawModel(sphere, position, 1, is_active ? rl.BLUE : rl.GRAY)
 				rl.DrawModelWires(sphere, position, 1, rl.DARKGRAY)
 			}
 
-			for ball_index in removed_balls {
-				ball_id := balls[ball_index]
-				jph.BodyInterface_RemoveAndDestroyBody(physics.body_interface, ball_id)
-				unordered_remove(&balls, ball_index)
+			for drop_index in removed_drops {
+				drop_id := drops[drop_index]
+				jph.BodyInterface_RemoveAndDestroyBody(physics.body_interface, drop_id)
+				unordered_remove(&drops, drop_index)
 			}
-			clear(&removed_balls)
+			clear(&removed_drops)
 
 			draw_physics_debug()
 		}
@@ -196,9 +196,9 @@ main_heightmap :: proc() {
 
 		rl.DrawText(
 			fmt.ctprintf(
-				"Hold RIGHT mouse button and use WASD for camera control.\nLEFT click to select balls.\nPress space to %v spawning balls.\nBalls: %d",
+				"Hold RIGHT mouse button and use WASD for camera control.\nLEFT click to select drops.\nPress space to %v spawning drops.\nDrops: %d",
 				is_spawning ? "stop" : "start",
-				len(balls),
+				len(drops),
 			),
 			2,
 			42,
