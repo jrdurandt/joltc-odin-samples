@@ -37,10 +37,11 @@ main :: proc() {
 
 	log.debug("DEBUG ENABLED")
 
-	demo := "ballpit"
+	demo := "terrain"
 	if len(os.args) >= 1 {
-		demo = os.args[1]
 		log.warnf("No demo specified. Defaulting to ballpit")
+	} else {
+		demo = os.args[1]
 	}
 	demo = strings.to_upper(demo)
 	log.infof("Loading demo: %s", demo)
@@ -49,6 +50,8 @@ main :: proc() {
 		main_ballpit()
 	} else if strings.compare(demo, "CRIB") == 0 {
 		main_crib()
+	} else if strings.compare(demo, "TERRAIN") == 0 {
+		main_heightmap()
 	} else {
 		log.panicf("Invalid demo specific: %s", demo)
 	}

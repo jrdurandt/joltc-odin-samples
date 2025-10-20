@@ -103,6 +103,7 @@ init_physics :: proc() {
 	jph.DrawSettings_InitDefault(&physics.debug_draw_settings)
 	// physics.debug_draw_settings.drawBoundingBox = true
 	physics.debug_draw_settings.drawShape = false
+	// physics.debug_draw_settings.drawShapeWireframe = true
 	// physics.debug_draw_settings.drawVelocity = true
 	// physics.debug_draw_settings.drawMassAndInertia = true
 }
