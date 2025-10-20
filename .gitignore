@@ -6,3 +6,7 @@
 *.dylib
 
 /jolt-odin
+jolt-odin-samples
+
+.vscode/
+.idea/

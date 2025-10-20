@@ -2,6 +2,8 @@ package main
 
 import "core:log"
 import "core:mem"
+import "core:os"
+import "core:strings"
 
 import jph "jolt-odin"
 import rl "vendor:raylib"
@@ -35,8 +37,21 @@ main :: proc() {
 
 	log.debug("DEBUG ENABLED")
 
-	// main_ballpit()
-	main_crib()
+	demo := "ballpit"
+	if len(os.args) >= 1 {
+		demo = os.args[1]
+		log.warnf("No demo specified. Defaulting to ballpit")
+	}
+	demo = strings.to_upper(demo)
+	log.infof("Loading demo: %s", demo)
+
+	if strings.compare(demo, "BALLPIT") == 0 {
+		main_ballpit()
+	} else if strings.compare(demo, "CRIB") == 0 {
+		main_crib()
+	} else {
+		log.panicf("Invalid demo specific: %s", demo)
+	}
 }
 
 hex_to_color :: proc "contextless" (rgba: u32) -> rl.Color {
