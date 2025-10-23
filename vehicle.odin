@@ -39,7 +39,7 @@ main_vehicle :: proc() {
 	jph.BodyCreationSettings_SetFriction(floor_settings, 1.0)
 	jph.BodyInterface_CreateAndAddBody(physics.body_interface, floor_settings, .DontActivate)
 
-	position := [3]f32{0, 2, 0}
+	position := [3]f32{0, 4, 0}
 	initial_roll_angle: f32 = 0
 	max_roll_angle: f32 = math.to_radians_f32(60)
 	max_steering_angle: f32 = math.to_radians_f32(30)
@@ -50,10 +50,10 @@ main_vehicle :: proc() {
 	front_caster_angle: f32 = 0
 	front_camber: f32 = 0
 	front_toe: f32 = 0
-	front_suspension_min_length: f32 = 0.3
-	front_suspension_max_length: f32 = 0.5
-	front_suspension_frequency: f32 = 1.5
-	front_suspension_damping: f32 = 0.5
+	front_suspension_min_length: f32 = 0.2
+	front_suspension_max_length: f32 = 0.6
+	front_suspension_frequency: f32 = 2.0
+	front_suspension_damping: f32 = 0.7
 
 	rear_suspension_sideways_angle: f32 = 0
 	rear_suspension_forward_angle: f32 = 0
@@ -61,10 +61,10 @@ main_vehicle :: proc() {
 	rear_caster_angle: f32 = 0
 	rear_camber: f32 = 0
 	rear_toe: f32 = 0
-	rear_suspension_min_length: f32 = 0.3
-	rear_suspension_max_length: f32 = 0.5
-	rear_suspension_frequency: f32 = 1.5
-	rear_suspension_damping: f32 = 0.5
+	rear_suspension_min_length: f32 = 0.2
+	rear_suspension_max_length: f32 = 0.6
+	rear_suspension_frequency: f32 = 2.0
+	rear_suspension_damping: f32 = 0.7
 
 	wheel_radius: f32 = 0.3
 	wheel_width: f32 = 0.1
@@ -135,12 +135,9 @@ main_vehicle :: proc() {
 
 	// Create vehicle constraint
 	vehicle: jph.VehicleConstraintSettings
-	// jph.VehicleConstraintSettings_Init(&vehicle)
+	jph.VehicleConstraintSettings_Init(&vehicle)
 	vehicle.base.drawConstraintSize = 0.1
 	vehicle.maxPitchRollAngle = max_roll_angle
-
-	vehicle.up = {0, 1, 0}
-	vehicle.forward = {0, 0, 1}
 
 	// Suspension direction
 	front_suspension_dir := linalg.normalize(
@@ -213,14 +210,17 @@ main_vehicle :: proc() {
 	jph.WheelSettings_SetSuspensionForcePoint(cast(^jph.WheelSettings)w2, &wheel_pos)
 	jph.WheelSettings_SetEnableSuspensionForcePoint(cast(^jph.WheelSettings)w2, true)
 
-	// front_suspension_dir *= flip_x
-	jph.WheelSettings_SetSuspensionDirection(cast(^jph.WheelSettings)w2, &front_suspension_dir)
-	// front_steering_axis *= flip_x
-	jph.WheelSettings_SetSteeringAxis(cast(^jph.WheelSettings)w2, &front_steering_axis)
-	// front_wheel_up *= flip_x
-	jph.WheelSettings_SetWheelUp(cast(^jph.WheelSettings)w2, &front_wheel_up)
-	// front_wheel_forward *= flip_x
-	jph.WheelSettings_SetWheelForward(cast(^jph.WheelSettings)w2, &front_wheel_forward)
+	front_suspension_dir_flipped := front_suspension_dir * flip_x
+	jph.WheelSettings_SetSuspensionDirection(
+		cast(^jph.WheelSettings)w2,
+		&front_suspension_dir_flipped,
+	)
+	front_steering_axis_flipped := front_steering_axis * flip_x
+	jph.WheelSettings_SetSteeringAxis(cast(^jph.WheelSettings)w2, &front_steering_axis_flipped)
+	front_wheel_up_flipped := front_wheel_up * flip_x
+	jph.WheelSettings_SetWheelUp(cast(^jph.WheelSettings)w2, &front_wheel_up_flipped)
+	front_wheel_forward_flipped := front_wheel_forward * flip_x
+	jph.WheelSettings_SetWheelForward(cast(^jph.WheelSettings)w2, &front_wheel_forward_flipped)
 	jph.WheelSettings_SetSuspensionMinLength(
 		cast(^jph.WheelSettings)w2,
 		front_suspension_min_length,
@@ -275,14 +275,17 @@ main_vehicle :: proc() {
 	jph.WheelSettings_SetSuspensionForcePoint(cast(^jph.WheelSettings)w4, &wheel_pos)
 	jph.WheelSettings_SetEnableSuspensionForcePoint(cast(^jph.WheelSettings)w4, true)
 
-	// rear_suspension_dir *= flip_x
-	jph.WheelSettings_SetSuspensionDirection(cast(^jph.WheelSettings)w4, &rear_suspension_dir)
-	// rear_steering_axis *= flip_x
-	jph.WheelSettings_SetSteeringAxis(cast(^jph.WheelSettings)w4, &rear_steering_axis)
-	// rear_wheel_up *= flip_x
-	jph.WheelSettings_SetWheelUp(cast(^jph.WheelSettings)w4, &rear_wheel_up)
-	// rear_wheel_forward *= flip_x
-	jph.WheelSettings_SetWheelForward(cast(^jph.WheelSettings)w4, &rear_wheel_forward)
+	rear_suspension_dir_flipped := rear_suspension_dir * flip_x
+	jph.WheelSettings_SetSuspensionDirection(
+		cast(^jph.WheelSettings)w4,
+		&rear_suspension_dir_flipped,
+	)
+	rear_steering_axis_flipped := rear_steering_axis * flip_x
+	jph.WheelSettings_SetSteeringAxis(cast(^jph.WheelSettings)w4, &rear_steering_axis_flipped)
+	rear_wheel_up_flipped := rear_wheel_up * flip_x
+	jph.WheelSettings_SetWheelUp(cast(^jph.WheelSettings)w4, &rear_wheel_up_flipped)
+	rear_wheel_forward_flipped := rear_wheel_forward * flip_x
+	jph.WheelSettings_SetWheelForward(cast(^jph.WheelSettings)w4, &rear_wheel_forward_flipped)
 	jph.WheelSettings_SetSuspensionMinLength(
 		cast(^jph.WheelSettings)w4,
 		rear_suspension_min_length,
@@ -312,28 +315,56 @@ main_vehicle :: proc() {
 	controller := jph.WheeledVehicleControllerSettings_Create()
 	vehicle.controller = cast(^jph.VehicleControllerSettings)controller
 
-	// engine: jph.VehicleEngineSettings
-	// jph.VehicleEngineSettings_Init(&engine)
-	// engine.maxTorque = max_engine_torque
-	// jph.WheeledVehicleControllerSettings_SetEngine(controller, &engine)
+	engine: jph.VehicleEngineSettings
+	jph.VehicleEngineSettings_Init(&engine)
+	engine.maxTorque = 500.0
+	engine.minRPM = 1000.0
+	engine.maxRPM = 6000.0
+	jph.WheeledVehicleControllerSettings_SetEngine(controller, &engine)
 
-	// transmission := jph.VehicleTransmissionSettings_Create()
-	// jph.VehicleTransmissionSettings_SetClutchStrength(transmission, clutch_strength)
-	// jph.WheeledVehicleControllerSettings_SetTransmission(controller, transmission)
+	transmission := jph.VehicleTransmissionSettings_Create()
+	jph.VehicleTransmissionSettings_SetClutchStrength(transmission, 10.0)
+	gear_ratios := []f32{-2.90, 0, 2.66, 1.78, 1.30, 1.0, 0.74}
+	jph.VehicleTransmissionSettings_SetGearRatios(
+		transmission,
+		&gear_ratios[0],
+		u32(len(gear_ratios)),
+	)
+	jph.WheeledVehicleControllerSettings_SetTransmission(controller, transmission)
 
 	// Differential
 	differentials: [1]jph.VehicleDifferentialSettings
+	jph.VehicleDifferentialSettings_Init(&differentials[0])
 	differentials[0].leftWheel = 2
 	differentials[0].rightWheel = 3
 	jph.WheeledVehicleControllerSettings_SetDifferentials(controller, &differentials[0], 1)
 
+	// Add anti-roll bars for better stability
+	anti_roll_bars: [2]jph.VehicleAntiRollBar
+	jph.VehicleAntiRollBar_Init(&anti_roll_bars[0])
+	jph.VehicleAntiRollBar_Init(&anti_roll_bars[1])
+
+	// Front anti-roll bar
+	anti_roll_bars[0].leftWheel = 0
+	anti_roll_bars[0].rightWheel = 1
+	anti_roll_bars[0].stiffness = 10000.0
+
+	// Rear anti-roll bar
+	anti_roll_bars[1].leftWheel = 2
+	anti_roll_bars[1].rightWheel = 3
+	anti_roll_bars[1].stiffness = 10000.0
+
+	vehicle.antiRollBars = &anti_roll_bars[0]
+	vehicle.antiRollBarsCount = u32(len(anti_roll_bars))
+	// vehicle.antiRollBarsCount = 1
+
+	fmt.printfln("V: %v", vehicle)
 	vehicle_constraint := jph.VehicleConstraint_Create(car_body, &vehicle)
 
 	jph.PhysicsSystem_AddConstraint(physics.system, cast(^jph.Constraint)vehicle_constraint)
-	jph.PhysicsSystem_AddStepListener(
-		physics.system,
-		cast(^jph.PhysicsStepListener)vehicle_constraint,
-	)
+	vehicle_step_listener := jph.VehicleConstraint_AsPhysicsStepListener(vehicle_constraint)
+	jph.PhysicsSystem_AddStepListener(physics.system, vehicle_step_listener)
+
 
 	for !rl.WindowShouldClose() {
 		delta_time := rl.GetFrameTime()
@@ -357,10 +388,11 @@ main_vehicle :: proc() {
 
 		err := jph.PhysicsSystem_Update(
 			physics.system,
-			delta_time,
+			1.0 / 60.0,
 			PHYSICS_COLLISION_SUB_STEPS,
 			physics.job_system,
 		)
+
 
 		if err != .None {
 			physics.is_running = false
@@ -375,7 +407,7 @@ main_vehicle :: proc() {
 		rl.BeginMode3D(camera)
 		{
 			rl.DrawGrid(10, 1)
-			rl.DrawPlane({0, -0.01, 0}, {10, 10}, rl.DARKGREEN)
+			// rl.DrawPlane({0, -0.01, 0}, {10, 10}, rl.DARKGREEN)
 
 			car_position: [3]f32
 			car_rotation: quaternion128
@@ -399,7 +431,6 @@ main_vehicle :: proc() {
 
 				wheel_model.transform = rl.MatrixTranspose(transmute(rl.Matrix)wheel_transform)
 				rl.DrawModelWires(wheel_model, {0, 0, 0}, 1, rl.YELLOW)
-
 			}
 
 			draw_physics_debug()
