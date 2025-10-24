@@ -5,7 +5,7 @@ import "core:mem"
 import "core:os"
 import "core:strings"
 
-import jph "jolt-odin"
+import jph "joltc-odin"
 import rl "vendor:raylib"
 
 WINDOW_WIDTH :: 1920
@@ -37,21 +37,23 @@ main :: proc() {
 
 	log.debug("DEBUG ENABLED")
 
-	demo := "terrain"
+	demo := "ballpit"
 	if len(os.args) >= 1 {
 		log.warnf("No demo specified. Defaulting to ballpit")
 	} else {
 		demo = os.args[1]
 	}
-	demo = strings.to_upper(demo)
+	demo = strings.to_lower(demo)
 	log.infof("Loading demo: %s", demo)
 
-	if strings.compare(demo, "BALLPIT") == 0 {
+	if strings.compare(demo, "ballpit") == 0 {
 		main_ballpit()
-	} else if strings.compare(demo, "CRIB") == 0 {
+	} else if strings.compare(demo, "crib") == 0 {
 		main_crib()
-	} else if strings.compare(demo, "TERRAIN") == 0 {
+	} else if strings.compare(demo, "terrain") == 0 {
 		main_heightmap()
+	} else if strings.compare(demo, "vehicle") == 0 {
+		main_vehicle()
 	} else {
 		log.panicf("Invalid demo specific: %s", demo)
 	}
