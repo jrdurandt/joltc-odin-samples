@@ -5,8 +5,8 @@
 *.dll
 *.dylib
 
-/jolt-odin
-jolt-odin-samples
+/joltc-odin
+joltc-odin-samples
 
 .vscode/
 .idea/

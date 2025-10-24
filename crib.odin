@@ -4,7 +4,7 @@ import "core:fmt"
 import "core:math"
 import "core:math/rand"
 
-import jph "jolt-odin"
+import jph "joltc-odin"
 import rl "vendor:raylib"
 
 main_crib :: proc() {

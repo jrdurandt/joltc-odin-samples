@@ -5,7 +5,7 @@ import "core:mem"
 import "core:os"
 import "core:strings"
 
-import jph "jolt-odin"
+import jph "joltc-odin"
 import rl "vendor:raylib"
 
 WINDOW_WIDTH :: 1920
@@ -37,7 +37,7 @@ main :: proc() {
 
 	log.debug("DEBUG ENABLED")
 
-	demo := "vehicle"
+	demo := "ballpit"
 	if len(os.args) >= 1 {
 		log.warnf("No demo specified. Defaulting to ballpit")
 	} else {

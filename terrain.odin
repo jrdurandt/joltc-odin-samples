@@ -4,7 +4,8 @@ import "core:fmt"
 import "core:math"
 import "core:math/noise"
 import "core:math/rand"
-import jph "jolt-odin"
+
+import jph "joltc-odin"
 import rl "vendor:raylib"
 
 main_heightmap :: proc() {

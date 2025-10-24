@@ -8,7 +8,8 @@ import "core:math/linalg"
 import "core:math/noise"
 import "core:math/rand"
 import "core:testing"
-import jph "jolt-odin"
+
+import jph "joltc-odin"
 import rl "vendor:raylib"
 
 main_vehicle :: proc() {

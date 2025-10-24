@@ -16,7 +16,7 @@ IS_OSX = SYSTEM == "Darwin"
 
 
 JOLT_ODIN_ZIP_URL = (
-    "https://gitlab.com/jrdurandt/jolt-odin/-/archive/latest/jolt-odin-latest.zip"
+    "https://github.com/jrdurandt/joltc-odin/archive/refs/heads/master.zip"
 )
 
 args_parser = argparse.ArgumentParser(
@@ -38,13 +38,13 @@ def main():
         do_update_jolt_odin = True
 
     if do_update_jolt_odin:
-        print("Downloading Jolt-Odin...")
-        urllib.request.urlretrieve(JOLT_ODIN_ZIP_URL, "jolt-odin.zip")
+        print("Downloading joltc-odin...")
+        urllib.request.urlretrieve(JOLT_ODIN_ZIP_URL, "joltc-odin.zip")
 
-        print("Extracting Jolt-Odin...")
-        with zipfile.ZipFile("jolt-odin.zip", "r") as zip_ref:
+        print("Extracting joltc-odin...")
+        with zipfile.ZipFile("joltc-odin.zip", "r") as zip_ref:
             zip_ref.extractall(owd)
-            shutil.move("jolt-odin-latest", "jolt-odin")
+            shutil.move("joltc-odin-master", "joltc-odin")
 
     do_build_joltc = args.build_joltc
     if IS_LINUX:
@@ -55,8 +55,8 @@ def main():
             do_build_joltc = True
 
     if do_build_joltc:
-        print("Building Jolt-Odin...")
-        os.chdir("jolt-odin")
+        print("Building joltc-odin...")
+        os.chdir("joltc-odin")
         subprocess.run([sys.executable, "build.py", "-build-lib"], check=True)
 
         if IS_WINDOWS:
@@ -68,7 +68,7 @@ def main():
     # Clean up
     print("Cleaning up...")
     os.chdir(owd)
-    os.remove("jolt-odin.zip")
+    os.remove("joltc-odin.zip")
 
 
 main()
