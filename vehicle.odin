@@ -1,9 +1,9 @@
 package main
 
+import "core:fmt"
 import "core:log"
 import "core:math"
 import "core:math/linalg"
-import "vendor:portmidi"
 
 import jph "joltc-odin"
 import rl "vendor:raylib"
@@ -40,7 +40,7 @@ main_vehicle :: proc() {
 	init_physics()
 	defer destroy_physics()
 
-	floor_shape := jph.BoxShape_Create(&{50, 1.0, 50}, jph.DEFAULT_CONVEX_RADIUS)
+	floor_shape := jph.BoxShape_Create(&{500, 1.0, 500}, jph.DEFAULT_CONVEX_RADIUS)
 	floor_settings := jph.BodyCreationSettings_Create3(
 		cast(^jph.Shape)floor_shape,
 		&{0, -1, 0},
@@ -389,9 +389,18 @@ main_vehicle :: proc() {
 	assert(vehicle_step_listener != nil)
 	jph.PhysicsSystem_AddStepListener(physics.system, vehicle_step_listener)
 
+	trans := jph.WheeledVehicleController_GetTransmission(
+		cast(^jph.WheeledVehicleController)controller,
+	)
+
+	eng := jph.WheeledVehicleController_GetEngine(cast(^jph.WheeledVehicleController)controller)
+
 	jph.Body_SetAllowSleeping(car_body, false)
 
+	run_physics()
 	for !rl.WindowShouldClose() {
+		gear := jph.VehicleTransmission_GetCurrentGear(trans)
+		rpm := jph.VehicleEngine_GetCurrentRPM(eng)
 		delta_time := rl.GetFrameTime()
 
 		right: f32 = 0.0
@@ -418,19 +427,6 @@ main_vehicle :: proc() {
 		jph.WheeledVehicleController_SetDriverInput(controller, forward, right, brake, 0)
 		jph.VehicleConstraint_SetVehicleCollisionTester(vehicle_constraint, testers[0])
 
-		err := jph.PhysicsSystem_Update(
-			physics.system,
-			1.0 / 60.0,
-			PHYSICS_COLLISION_SUB_STEPS,
-			physics.job_system,
-		)
-
-
-		if err != .None {
-			physics.is_running = false
-			log.errorf("Error updating physics system: %v", err)
-		}
-
 		rl.BeginDrawing()
 		defer rl.EndDrawing()
 
@@ -438,7 +434,7 @@ main_vehicle :: proc() {
 
 		rl.BeginMode3D(camera)
 		{
-			rl.DrawGrid(100, 1)
+			rl.DrawGrid(1000, 1)
 			// rl.DrawPlane({0, -0.01, 0}, {10, 10}, rl.DARKGREEN)
 
 			car_position: [3]f32
@@ -470,6 +466,25 @@ main_vehicle :: proc() {
 		rl.EndMode3D()
 
 		rl.DrawFPS(2, 2)
+		rl.DrawText(fmt.ctprintfln("%d UPS", physics.ups), 2, 22, 20, rl.GREEN)
+
+		lin_vel: [3]f32
+		jph.BodyInterface_GetLinearVelocity(physics.body_interface, car_body_id, &lin_vel)
+		speed := linalg.length(lin_vel)
+		rl.DrawText(
+			fmt.ctprintfln(
+				"RPM: %f\nSpeed: %3.0f mps (%3.0f kph)\nGear: %d",
+				rpm,
+				speed,
+				speed * 3.6,
+				gear,
+			),
+			2,
+			42,
+			20,
+			rl.YELLOW,
+		)
+
 	}
 }
 
