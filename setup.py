@@ -16,7 +16,8 @@ IS_OSX = SYSTEM == "Darwin"
 
 
 JOLT_ODIN_ZIP_URL = (
-    "https://github.com/jrdurandt/joltc-odin/archive/refs/heads/master.zip"
+    # "https://github.com/jrdurandt/joltc-odin/archive/refs/heads/master.zip"
+    "https://github.com/jrdurandt/joltc-odin/archive/refs/heads/feat/joltc-fork.zip"
 )
 
 args_parser = argparse.ArgumentParser(
@@ -44,7 +45,7 @@ def main():
         print("Extracting joltc-odin...")
         with zipfile.ZipFile("joltc-odin.zip", "r") as zip_ref:
             zip_ref.extractall(owd)
-            shutil.move("joltc-odin-master", "joltc-odin")
+            shutil.move("joltc-odin-feat-joltc-fork", "joltc-odin")
 
     do_build_joltc = args.build_joltc
     if IS_LINUX:

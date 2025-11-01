@@ -1,16 +1,27 @@
 package main
 
-import "base:runtime"
-import "core:fmt"
 import "core:log"
 import "core:math"
 import "core:math/linalg"
-import "core:math/noise"
-import "core:math/rand"
-import "core:testing"
+import "vendor:portmidi"
 
 import jph "joltc-odin"
 import rl "vendor:raylib"
+
+tire_max_impulse_callback :: proc "c" (
+	wheelIndex: u32,
+	longitudinalImpulse: ^f32,
+	lateralImpulse: ^f32,
+	suspensionImpulse: f32,
+	longitudinalFriction: f32,
+	lateralFriction: f32,
+	longitudinalSlip: f32,
+	lateralSlip: f32,
+	deltaTime: f32,
+) {
+	longitudinalImpulse^ = 10 * longitudinalFriction * suspensionImpulse
+	lateralImpulse^ = lateralFriction * suspensionImpulse
+}
 
 main_vehicle :: proc() {
 	rl.SetConfigFlags({.MSAA_4X_HINT})
@@ -315,15 +326,14 @@ main_vehicle :: proc() {
 	vehicle.wheels = &wheels[0]
 	vehicle.wheelsCount = 4
 
-	controller := jph.WheeledVehicleControllerSettings_Create()
-	vehicle.controller = cast(^jph.VehicleControllerSettings)controller
+	controller_settings := jph.WheeledVehicleControllerSettings_Create()
+	vehicle.controller = cast(^jph.VehicleControllerSettings)controller_settings
 
-	engine: jph.VehicleEngineSettings
-	jph.VehicleEngineSettings_Init(&engine)
-	engine.maxTorque = 500.0
-	engine.minRPM = 1000.0
-	engine.maxRPM = 6000.0
-	jph.WheeledVehicleControllerSettings_SetEngine(controller, &engine)
+	engine := jph.VehicleEngineSettings_Create()
+	jph.VehicleEngineSettings_SetMaxTorque(engine, 500)
+	jph.VehicleEngineSettings_SetMinRPM(engine, 1000)
+	jph.VehicleEngineSettings_SetMaxRPM(engine, 6000)
+	jph.WheeledVehicleControllerSettings_SetEngine(controller_settings, engine)
 
 	transmission := jph.VehicleTransmissionSettings_Create()
 	jph.VehicleTransmissionSettings_SetClutchStrength(transmission, 10.0)
@@ -334,14 +344,18 @@ main_vehicle :: proc() {
 		&gear_ratios[0],
 		u32(len(gear_ratios)),
 	)
-	jph.WheeledVehicleControllerSettings_SetTransmission(controller, transmission)
+	jph.WheeledVehicleControllerSettings_SetTransmission(controller_settings, transmission)
 
 	// Differential
 	differentials: [1]jph.VehicleDifferentialSettings
 	jph.VehicleDifferentialSettings_Init(&differentials[0])
 	differentials[0].leftWheel = 2
 	differentials[0].rightWheel = 3
-	jph.WheeledVehicleControllerSettings_SetDifferentials(controller, &differentials[0], 1)
+	jph.WheeledVehicleControllerSettings_SetDifferentials(
+		controller_settings,
+		&differentials[0],
+		1,
+	)
 
 	// Add anti-roll bars for better stability
 	anti_roll_bars: [2]jph.VehicleAntiRollBar
@@ -360,20 +374,25 @@ main_vehicle :: proc() {
 
 	vehicle.antiRollBars = &anti_roll_bars[0]
 	vehicle.antiRollBarsCount = u32(len(anti_roll_bars))
-	// vehicle.antiRollBarsCount = 1
 
-	fmt.printfln("V: %v", vehicle)
 	vehicle_constraint := jph.VehicleConstraint_Create(car_body, &vehicle)
 
 	jph.PhysicsSystem_AddConstraint(physics.system, cast(^jph.Constraint)vehicle_constraint)
+
+	controller := jph.VehicleConstraint_GetController(vehicle_constraint)
+	jph.WheeledVehicleController_SetTireMaxImpulseCallback(
+		cast(^jph.WheeledVehicleController)controller,
+		tire_max_impulse_callback,
+	)
+
 	vehicle_step_listener := jph.VehicleConstraint_AsPhysicsStepListener(vehicle_constraint)
 	assert(vehicle_step_listener != nil)
 	jph.PhysicsSystem_AddStepListener(physics.system, vehicle_step_listener)
 
+	jph.Body_SetAllowSleeping(car_body, false)
 
 	for !rl.WindowShouldClose() {
 		delta_time := rl.GetFrameTime()
-
 
 		right: f32 = 0.0
 		forward: f32 = 0.0
@@ -427,8 +446,7 @@ main_vehicle :: proc() {
 
 			jph.BodyInterface_GetPosition(physics.body_interface, car_body_id, &car_position)
 			jph.BodyInterface_GetRotation(physics.body_interface, car_body_id, &car_rotation)
-
-			camera.target = car_position
+			update_follow_camera(&camera, car_position, car_rotation)
 			car_model.transform = rl.QuaternionToMatrix(car_rotation)
 
 			rl.DrawModel(car_model, car_position, 1, rl.RED)
@@ -452,7 +470,17 @@ main_vehicle :: proc() {
 		rl.EndMode3D()
 
 		rl.DrawFPS(2, 2)
-
-
 	}
+}
+
+update_follow_camera :: proc(camera: ^rl.Camera, pos: [3]f32, rot: quaternion128) {
+	dist: f32 = 10
+	cam_pos := linalg.quaternion_mul_vector3(
+		linalg.quaternion_from_euler_angle_x(-f32(linalg.to_radians(75.0))),
+		[3]f32{0, dist, 0},
+	)
+	cam_pos = linalg.quaternion_mul_vector3(rot, cam_pos)
+
+	camera.position = pos + cam_pos
+	camera.target = pos
 }

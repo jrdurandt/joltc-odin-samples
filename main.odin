@@ -37,7 +37,7 @@ main :: proc() {
 
 	log.debug("DEBUG ENABLED")
 
-	demo := "ballpit"
+	demo := "vehicle"
 	if len(os.args) >= 1 {
 		log.warnf("No demo specified. Defaulting to ballpit")
 	} else {
